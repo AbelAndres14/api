@@ -6,7 +6,7 @@ const userRoutes = require('./routes/routes');
 const { errorHandler } = require('./middleware/hadler');
 
 const app = express();
-const PORT = process.env.PORT || 3336;
+const PORT = process.env.PORT || 3337;
 
 // Middlewares
 app.use(cors());
@@ -33,5 +33,5 @@ app.use(errorHandler);
 
 // Iniciar servidor
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en http://srv-macpro.duckdns.org:${PORT}`);
+  console.log(`🚀 Servidor corriendo en localhost:${PORT}`);
 });
