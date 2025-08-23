@@ -2,11 +2,11 @@ const db = require('../config/database');
 
 const User = {
   getAll: (callback) => {
-    db.query('SELECT * FROM users', callback);
+    db.query('SELECT Id, nombre, email, images FROM users', callback);
   },
 
   getById: (id, callback) => {
-    db.query('SELECT * FROM users WHERE id = ?', [id], callback);
+    db.query('SELECT Id, nombre, email, images FROM users WHERE Id = ?', [id], callback);
   },
 
   getByEmail: (email, callback) => {
@@ -14,25 +14,25 @@ const User = {
   },
 
   create: (userData, callback) => {
-    const { name, email, password } = userData;
+    const { nombre, email, password, images } = userData;
     db.query(
-      'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
-      [name, email, password],
+      'INSERT INTO users (nombre, email, password, images) VALUES (?, ?, ?, ?)',
+      [nombre, email, password, images || ''],
       callback
     );
   },
 
   update: (id, userData, callback) => {
-    const { name, email } = userData;
+    const { nombre, email, images } = userData;
     db.query(
-      'UPDATE users SET name = ?, email = ? WHERE id = ?',
-      [name, email, id],
+      'UPDATE users SET nombre = ?, email = ?, images = ? WHERE Id = ?',
+      [nombre, email, images, id],
       callback
     );
   },
 
   delete: (id, callback) => {
-    db.query('DELETE FROM users WHERE id = ?', [id], callback);
+    db.query('DELETE FROM users WHERE Id = ?', [id], callback);
   }
 };
 
