@@ -1,23 +1,27 @@
 const User = require('../models/model');
 
-// Controlador para la ruta POST /api/usuario
+// Crear usuario - ENDPOINT PRINCIPAL
 exports.createUser = async (req, res) => {
   try {
-    const { nombre, correo, password } = req.body;
+    const { nombre, correo, password, telefono } = req.body;
 
+    console.log('Datos recibidos:', req.body);
+
+    // Validaciones
     if (!nombre || !correo || !password) {
       return res.status(400).json({
         success: false,
-        error: 'Todos los campos son requeridos: nombre, correo, password'
+        error: 'Nombre, correo y password son requeridos'
       });
     }
 
     // Verificar si el correo ya existe
     User.getByEmail(correo, (err, results) => {
       if (err) {
+        console.error('Error verificando email:', err);
         return res.status(500).json({
           success: false,
-          error: 'Error al verificar el correo'
+          error: 'Error interno del servidor'
         });
       }
 
@@ -32,11 +36,13 @@ exports.createUser = async (req, res) => {
       const userData = {
         name: nombre,
         email: correo,
-        password: password // En producción, deberías hashear la contraseña
+        password: password,
+        telefono: telefono || '' // Campo opcional
       };
 
       User.create(userData, (err, results) => {
         if (err) {
+          console.error('Error creando usuario:', err);
           return res.status(500).json({
             success: false,
             error: 'Error al crear el usuario'
@@ -49,13 +55,15 @@ exports.createUser = async (req, res) => {
           user: {
             id: results.insertId,
             nombre: nombre,
-            correo: correo
+            correo: correo,
+            telefono: telefono
           }
         });
       });
     });
 
   } catch (error) {
+    console.error('Error inesperado:', error);
     res.status(500).json({
       success: false,
       error: 'Error interno del servidor'
@@ -63,10 +71,17 @@ exports.createUser = async (req, res) => {
   }
 };
 
-// Controlador específico para /usuario.php?accion=crear
+// Endpoint compatible con tu código PHP actual
 exports.createUserPHP = (req, res) => {
-  // Para compatibilidad con la URL antigua
+  // Adaptar para el formato ?accion=crear
   if (req.query.accion === 'crear') {
+    // Mapear los datos del formato PHP al formato nuevo
+    req.body = {
+      nombre: req.body.nombre,
+      correo: req.body.correo,
+      password: req.body.password,
+      telefono: req.body.telefono
+    };
     exports.createUser(req, res);
   } else {
     res.status(400).json({
