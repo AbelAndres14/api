@@ -1,4 +1,7 @@
-exports.createUser = async (req, res) => {
+const User = require('../models/model');
+
+// Crear usuario - ENDPOINT PRINCIPAL
+const createUser = async (req, res) => {
   try {
     const { nombre, email, password, images } = req.body;
 
@@ -33,7 +36,7 @@ exports.createUser = async (req, res) => {
         nombre: nombre,
         email: email,
         password: password,
-        images: images || '' // Campo para la imagen
+        images: images || ''
       };
 
       User.create(userData, (err, results) => {
@@ -65,4 +68,84 @@ exports.createUser = async (req, res) => {
       error: 'Error interno del servidor'
     });
   }
+};
+
+// Endpoint compatible con tu código PHP actual
+const createUserPHP = (req, res) => {
+  if (req.query.accion === 'crear') {
+    req.body = {
+      nombre: req.body.nombre,
+      email: req.body.email,
+      password: req.body.password,
+      images: req.body.images
+    };
+    createUser(req, res);
+  } else {
+    res.status(400).json({
+      success: false,
+      error: 'Acción no válida'
+    });
+  }
+};
+
+// Obtener todos los usuarios
+const getAllUsers = (req, res) => {
+  User.getAll((err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
+  });
+};
+
+// Obtener usuario por ID
+const getUserById = (req, res) => {
+  const id = req.params.id;
+  User.getById(id, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    res.json(results[0]);
+  });
+};
+
+// Actualizar usuario
+const updateUser = (req, res) => {
+  const id = req.params.id;
+  User.update(id, req.body, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    res.json({ message: 'Usuario actualizado' });
+  });
+};
+
+// Eliminar usuario
+const deleteUser = (req, res) => {
+  const id = req.params.id;
+  User.delete(id, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    res.json({ message: 'Usuario eliminado' });
+  });
+};
+
+// Exportar todas las funciones
+module.exports = {
+  createUser,
+  createUserPHP,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser
 };
