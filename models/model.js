@@ -6,7 +6,7 @@ const User = {
   },
 
   getById: (id, callback) => {
-    db.query('SELECT Id, nombre, email, images FROM users WHERE Id = ?', [id], callback);
+    db.query('SELECT Id, nombre, email, images FROM usuarios WHERE Id = ?', [id], callback);
   },
 
   getByEmail: (email, callback) => {
