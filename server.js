@@ -6,7 +6,7 @@ const userRoutes = require('./routes/routes');
 const { errorHandler } = require('./middleware/hadler');
 
 const app = express();
-const PORT = process.env.PORT || 3337;
+const PORT = process.env.PORT || 3008;
 
 // Middlewares
 app.use(cors());
