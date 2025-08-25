@@ -2,21 +2,23 @@ const db = require('../config/database');
 
 const User = {
   getAll: (callback) => {
-    db.query('SELECT Id, nombre, email, images FROM usuarios', callback);
+    db.query('SELECT id, nombre, email, images, hObs_emotion FROM usuarios', callback);
   },
 
   getById: (id, callback) => {
-    db.query('SELECT Id, nombre, email, images FROM usuarios WHERE Id = ?', [id], callback);
+    db.query('SELECT id, nombre, email, images, hObs_emotion FROM usuarios WHERE id = ?', [id], callback);
   },
 
   getByEmail: (email, callback) => {
-    db.query('SELECT * FROM users WHERE email = ?', [email], callback);
+    // ✅ CAMBIA "users" POR "usuarios"
+    db.query('SELECT * FROM usuarios WHERE email = ?', [email], callback);
   },
 
   create: (userData, callback) => {
     const { nombre, email, password, images } = userData;
+    // ✅ CAMBIA "users" POR "usuarios"
     db.query(
-      'INSERT INTO users (nombre, email, password, images) VALUES (?, ?, ?, ?)',
+      'INSERT INTO usuarios (nombre, email, password, images) VALUES (?, ?, ?, ?)',
       [nombre, email, password, images || ''],
       callback
     );
@@ -24,15 +26,17 @@ const User = {
 
   update: (id, userData, callback) => {
     const { nombre, email, images } = userData;
+    // ✅ CAMBIA "users" POR "usuarios"
     db.query(
-      'UPDATE users SET nombre = ?, email = ?, images = ? WHERE Id = ?',
+      'UPDATE usuarios SET nombre = ?, email = ?, images = ? WHERE id = ?',
       [nombre, email, images, id],
       callback
     );
   },
 
   delete: (id, callback) => {
-    db.query('DELETE FROM users WHERE Id = ?', [id], callback);
+    // ✅ CAMBIA "users" POR "usuarios"
+    db.query('DELETE FROM usuarios WHERE id = ?', [id], callback);
   }
 };
 
