@@ -1,23 +1,24 @@
 const User = require('../models/model');
+const bcrypt = require('bcryptjs');
 
 // Crear usuario - ENDPOINT PRINCIPAL
 const createUser = async (req, res) => {
   try {
-    const { nombre, email, password, images } = req.body;
+    const { nombre, apellido, password, telefono, correo } = req.body;
 
     console.log('Datos recibidos:', req.body);
 
-    if (!nombre || !email || !password) {
+    if (!nombre || !apellido || !password || !telefono || !correo) {
       return res.status(400).json({
         success: false,
-        error: 'Nombre, email y password son requeridos'
+        error: 'Nombre, apellido, password, teléfono y correo son requeridos'
       });
     }
 
-    // Verificar si el email ya existe
-    User.getByEmail(email, (err, results) => {
+    // Verificar si el correo ya existe
+    User.getByEmail(correo, async (err, results) => {
       if (err) {
-        console.error('Error verificando email:', err);
+        console.error('Error verificando correo:', err);
         return res.status(500).json({
           success: false,
           error: 'Error interno del servidor'
@@ -27,38 +28,123 @@ const createUser = async (req, res) => {
       if (results.length > 0) {
         return res.status(400).json({
           success: false,
-          error: 'El email ya está registrado'
+          error: 'El correo ya está registrado'
         });
       }
 
-      // Crear el usuario con la estructura correcta
-      const userData = {
-        nombre: nombre,
-        email: email,
-        password: password,
-        images: images || ''
-      };
+      // Hash de la contraseña
+      try {
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-      User.create(userData, (err, results) => {
-        if (err) {
-          console.error('Error creando usuario:', err);
-          return res.status(500).json({
+        // Crear el usuario con la estructura correcta
+        const userData = {
+          nombre: nombre + ' ' + apellido, // Combinar nombre y apellido
+          email: correo,
+          password: hashedPassword, // Contraseña hasheada
+          telefono: telefono
+        };
+
+        User.create(userData, (err, results) => {
+          if (err) {
+            console.error('Error creando usuario:', err);
+            return res.status(500).json({
+              success: false,
+              error: 'Error al crear el usuario'
+            });
+          }
+
+          res.status(201).json({
+            success: true,
+            message: 'Usuario registrado exitosamente',
+            user: {
+              Id: results.insertId,
+              nombre: nombre,
+              apellido: apellido,
+              telefono: telefono,
+              correo: correo
+            }
+          });
+        });
+
+      } catch (hashError) {
+        console.error('Error hasheando password:', hashError);
+        return res.status(500).json({
+          success: false,
+          error: 'Error interno del servidor'
+        });
+      }
+    });
+
+  } catch (error) {
+    console.error('Error inesperado:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error interno del servidor'
+    });
+  }
+};
+
+// Función para login
+const loginUser = async (req, res) => {
+  try {
+    const { correo, password } = req.body;
+
+    console.log('Datos de login recibidos:', { correo });
+
+    if (!correo || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Correo y password son requeridos'
+      });
+    }
+
+    // Buscar usuario por correo
+    User.getByEmail(correo, async (err, results) => {
+      if (err) {
+        console.error('Error buscando usuario:', err);
+        return res.status(500).json({
+          success: false,
+          error: 'Error interno del servidor'
+        });
+      }
+
+      if (results.length === 0) {
+        return res.status(401).json({
+          success: false,
+          error: 'Credenciales inválidas'
+        });
+      }
+
+      const user = results[0];
+
+      // Verificar contraseña
+      try {
+        const validPassword = await bcrypt.compare(password, user.password);
+        if (!validPassword) {
+          return res.status(401).json({
             success: false,
-            error: 'Error al crear el usuario'
+            error: 'Credenciales inválidas'
           });
         }
 
-        res.status(201).json({
+        res.json({
           success: true,
-          message: 'Usuario registrado exitosamente',
+          message: 'Login exitoso',
           user: {
-            Id: results.insertId,
-            nombre: nombre,
-            email: email,
-            images: images
+            id: user.id,
+            nombre: user.nombre,
+            telefono: user.telefono,
+            correo: user.email
           }
         });
-      });
+
+      } catch (compareError) {
+        console.error('Error comparando passwords:', compareError);
+        return res.status(500).json({
+          success: false,
+          error: 'Error interno del servidor'
+        });
+      }
     });
 
   } catch (error) {
@@ -75,9 +161,10 @@ const createUserPHP = (req, res) => {
   if (req.query.accion === 'crear') {
     req.body = {
       nombre: req.body.nombre,
-      email: req.body.email,
+      apellido: req.body.apellido,
       password: req.body.password,
-      images: req.body.images
+      telefono: req.body.telefono,
+      correo: req.body.correo
     };
     createUser(req, res);
   } else {
@@ -144,6 +231,7 @@ const deleteUser = (req, res) => {
 module.exports = {
   createUser,
   createUserPHP,
+  loginUser,
   getAllUsers,
   getUserById,
   updateUser,

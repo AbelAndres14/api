@@ -13,15 +13,15 @@ const User = {
     db.query('SELECT * FROM usuarios WHERE email = ?', [email], callback);
   },
 
-  create: (userData, callback) => {
-    const { nombre, email, password } = userData;
-    // ✅ QUITA la columna images si no existe
-    db.query(
-      'INSERT INTO usuarios (nombre, email, password) VALUES (?, ?, ?)',
-      [nombre, email, password],
-      callback
-    );
-  },
+ // En models/model.js
+create: (userData, callback) => {
+  const { nombre, email, password, telefono } = userData;
+  db.query(
+    'INSERT INTO usuarios (nombre, email, password, telefono) VALUES (?, ?, ?, ?)',
+    [nombre, email, password, telefono || ''],
+    callback
+  );
+},
 
   update: (id, userData, callback) => {
     const { nombre, email } = userData;
