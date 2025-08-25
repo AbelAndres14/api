@@ -2,7 +2,7 @@ const db = require('../config/database');
 
 const User = {
   getAll: (callback) => {
-    db.query('SELECT Id, nombre, email, images FROM users', callback);
+    db.query('SELECT Id, nombre, email, images FROM usuarios', callback);
   },
 
   getById: (id, callback) => {
