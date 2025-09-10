@@ -1,11 +1,10 @@
 const mysql = require('mysql2');
-require('dotenv').config();
-
+equire('dotenv').config();
 const connection = mysql.createConnection({
-  host: process.env.DB_HOST || 'srv-macproduckdns.org',
+  host: process.env.DB_HOST || '192.168.33.30',
   user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'vXYhVpthFN2xnCTD5LOh',
-  database: process.env.DB_NAME || 'walle',
+  password: process.env.DB_PASSWORD || 'bia',
+  database: process.env.DB_NAME || 'tracky',
   port: process.env.DB_PORT || 3336, // Puerto por defecto de MySQL
   connectTimeout: 60000, // Aumenta el timeout a 60 segundos
   reconnect: true // Permitir reconexión
