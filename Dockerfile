@@ -10,6 +10,6 @@ COPY . .
 
 RUN chmod -R 755 /app/node_modules/.bin/
 
-EXPOSE 5000
+EXPOSE 3008
 
 CMD ["npm", "run", "dev"]
