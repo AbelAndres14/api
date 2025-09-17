@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/controller');
+const viajeController = require('../controllers/viajeController'); // plural
+
 
 // Ruta para crear usuario (que coincide con tu app React Native)
 router.post('/usuario', userController.createUser);
@@ -15,5 +17,10 @@ router.put('/usuario/:id', userController.updateUser);
 router.delete('/usuario/:id', userController.deleteUser);
 router.post('/usuario/login', userController.loginUser);
 
+router.post('/viajes', viajeController.createViaje);
+router.get('/viajes', viajeController.getAllViajes);
+router.get('/viajes/:id', viajeController.getViajeById);
+router.put('/viajes/:id/estado', viajeController.updateViajeEstado);
+router.delete('/viajes/:id', viajeController.deleteViaje);      // DELETE /api/viajes/:id
 
 module.exports = router;
