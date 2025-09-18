@@ -4,7 +4,7 @@ const Viaje = require('../models/viajeModel');
 // Crear un nuevo viaje
 const createViaje = async (req, res) => {
   try {
-    const { ubicacion, objeto, destinatario, estacion } = req.body;
+    const { ubicacion, objeto, destinatario, estacion, fechaCreacion } = req.body;
 
     console.log('📩 Datos del viaje recibidos:', req.body);
 
@@ -22,7 +22,7 @@ const createViaje = async (req, res) => {
       objeto,
       destinatario,
       estacion,
-      fecha_creacion: fechaCreacion || new Date().toISOString(), // 👈 corregido
+      fecha_creacion: fechaCreacion || new Date().toISOString(), // Si no viene, usa fecha actual
       estado: 'pendiente'
     };
 
@@ -55,7 +55,7 @@ const createViaje = async (req, res) => {
   }
 };
 
-// Obtener todos los viajes
+// Resto de funciones se mantienen igual
 const getAllViajes = (req, res) => {
   Viaje.getAll((err, results) => {
     if (err) {
@@ -69,7 +69,6 @@ const getAllViajes = (req, res) => {
   });
 };
 
-// Obtener viaje por ID
 const getViajeById = (req, res) => {
   const id = req.params.id;
 
@@ -91,7 +90,6 @@ const getViajeById = (req, res) => {
   });
 };
 
-// Actualizar estado del viaje
 const updateViajeEstado = (req, res) => {
   const id = req.params.id;
   const { estado } = req.body;
@@ -121,7 +119,6 @@ const updateViajeEstado = (req, res) => {
   });
 };
 
-// Eliminar viaje
 const deleteViaje = (req, res) => {
   const id = req.params.id;
 
