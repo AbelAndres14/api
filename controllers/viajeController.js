@@ -16,13 +16,18 @@ const createViaje = async (req, res) => {
       });
     }
 
+    // Convertir fecha al formato MySQL DATETIME
+    const fechaMySQL = fechaCreacion
+      ? new Date(fechaCreacion).toISOString().slice(0, 19).replace('T', ' ')
+      : new Date().toISOString().slice(0, 19).replace('T', ' ');
+
     // Preparar datos del viaje
     const viajeData = {
       ubicacion,
       objeto,
       destinatario,
       estacion,
-      fecha_creacion: fechaCreacion || new Date().toISOString(), // Si no viene, usa fecha actual
+      fecha_creacion: fechaMySQL,
       estado: 'pendiente'
     };
 
@@ -55,7 +60,7 @@ const createViaje = async (req, res) => {
   }
 };
 
-// Resto de funciones se mantienen igual
+// Obtener todos los viajes
 const getAllViajes = (req, res) => {
   Viaje.getAll((err, results) => {
     if (err) {
@@ -69,6 +74,7 @@ const getAllViajes = (req, res) => {
   });
 };
 
+// Obtener viaje por ID
 const getViajeById = (req, res) => {
   const id = req.params.id;
 
@@ -90,6 +96,7 @@ const getViajeById = (req, res) => {
   });
 };
 
+// Actualizar estado del viaje
 const updateViajeEstado = (req, res) => {
   const id = req.params.id;
   const { estado } = req.body;
@@ -119,6 +126,7 @@ const updateViajeEstado = (req, res) => {
   });
 };
 
+// Eliminar viaje
 const deleteViaje = (req, res) => {
   const id = req.params.id;
 
