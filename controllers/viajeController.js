@@ -4,9 +4,9 @@ const Viaje = require('../models/viajeModel');
 // Crear un nuevo viaje
 const createViaje = async (req, res) => {
   try {
-    const { ubicacion, objeto, destinatario, estacion, fechaCreacion, estado } = req.body;
+    const { ubicacion, objeto, destinatario, estacion } = req.body;
 
-    console.log('Datos del viaje recibidos:', req.body);
+    console.log('📩 Datos del viaje recibidos:', req.body);
 
     // Validar datos requeridos
     if (!ubicacion || !objeto || !destinatario || !estacion) {
@@ -22,23 +22,23 @@ const createViaje = async (req, res) => {
       objeto,
       destinatario,
       estacion,
-      fechaCreacion: fechaCreacion || new Date().toISOString(),
-      estado: estado || 'pendiente'
+      fechaCreacion: new Date().toISOString(),
+      estado: 'pendiente'
     };
 
-    // Crear el viaje en la base de datos
+    // Guardar en la base de datos
     Viaje.create(viajeData, (err, results) => {
       if (err) {
-        console.error('Error creando viaje:', err);
+        console.error('❌ Error creando viaje en DB:', err.sqlMessage || err);
         return res.status(500).json({
           success: false,
-          error: 'Error al crear el viaje'
+          error: 'Error al crear el viaje en la base de datos'
         });
       }
 
       res.status(201).json({
         success: true,
-        message: 'Viaje creado exitosamente',
+        message: '✅ Viaje creado exitosamente',
         viaje: {
           id: results.insertId,
           ...viajeData
@@ -47,7 +47,7 @@ const createViaje = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error inesperado:', error);
+    console.error('🔥 Error inesperado en createViaje:', error);
     res.status(500).json({
       success: false,
       error: 'Error interno del servidor'
@@ -59,40 +59,35 @@ const createViaje = async (req, res) => {
 const getAllViajes = (req, res) => {
   Viaje.getAll((err, results) => {
     if (err) {
-      console.error('Error obteniendo viajes:', err);
+      console.error('❌ Error obteniendo viajes:', err);
       return res.status(500).json({
         success: false,
         error: 'Error al obtener los viajes'
       });
     }
-    res.json({
-      success: true,
-      viajes: results
-    });
+    res.json({ success: true, viajes: results });
   });
 };
 
 // Obtener viaje por ID
 const getViajeById = (req, res) => {
   const id = req.params.id;
+
   Viaje.getById(id, (err, results) => {
     if (err) {
-      console.error('Error obteniendo viaje:', err);
+      console.error('❌ Error obteniendo viaje por ID:', err);
       return res.status(500).json({
         success: false,
         error: 'Error al obtener el viaje'
       });
     }
-    if (results.length === 0) {
+    if (!results || results.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Viaje no encontrado'
       });
     }
-    res.json({
-      success: true,
-      viaje: results[0]
-    });
+    res.json({ success: true, viaje: results[0] });
   });
 };
 
@@ -110,7 +105,7 @@ const updateViajeEstado = (req, res) => {
 
   Viaje.updateEstado(id, estado, (err, results) => {
     if (err) {
-      console.error('Error actualizando viaje:', err);
+      console.error('❌ Error actualizando estado de viaje:', err);
       return res.status(500).json({
         success: false,
         error: 'Error al actualizar el viaje'
@@ -122,19 +117,17 @@ const updateViajeEstado = (req, res) => {
         message: 'Viaje no encontrado'
       });
     }
-    res.json({
-      success: true,
-      message: 'Estado del viaje actualizado'
-    });
+    res.json({ success: true, message: '✅ Estado del viaje actualizado' });
   });
 };
 
 // Eliminar viaje
 const deleteViaje = (req, res) => {
   const id = req.params.id;
+
   Viaje.delete(id, (err, results) => {
     if (err) {
-      console.error('Error eliminando viaje:', err);
+      console.error('❌ Error eliminando viaje:', err);
       return res.status(500).json({
         success: false,
         error: 'Error al eliminar el viaje'
@@ -146,10 +139,7 @@ const deleteViaje = (req, res) => {
         message: 'Viaje no encontrado'
       });
     }
-    res.json({
-      success: true,
-      message: 'Viaje eliminado'
-    });
+    res.json({ success: true, message: '✅ Viaje eliminado' });
   });
 };
 
