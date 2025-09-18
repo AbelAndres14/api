@@ -22,7 +22,7 @@ const createViaje = async (req, res) => {
       objeto,
       destinatario,
       estacion,
-      fechaCreacion: new Date().toISOString(),
+      fecha_creacion: fechaCreacion || new Date().toISOString(), // 👈 corregido
       estado: 'pendiente'
     };
 

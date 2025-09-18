@@ -13,7 +13,7 @@ const Viaje = {
       viajeData.objeto,
       viajeData.destinatario,
       viajeData.estacion,
-      viajeData.fechaCreacion,
+      viajeData.fecha_creacion,
       viajeData.estado
     ];
 
