@@ -84,6 +84,35 @@ const createUser = async (req, res) => {
   }
 };
 
+// Buscar usuarios por nombre o correo (para autocompletado)
+// Buscar solo nombres de usuarios para autocompletado
+const searchUserNames = (req, res) => {
+  const search = req.query.q; // ejemplo: /api/users/suggest?q=and
+
+  if (!search || search.trim() === '') {
+    return res.status(400).json({
+      success: false,
+      error: 'Parámetro de búsqueda requerido (q)'
+    });
+  }
+
+  User.searchNames(search, (err, results) => {
+    if (err) {
+      console.error('Error en búsqueda de nombres:', err);
+      return res.status(500).json({
+        success: false,
+        error: 'Error interno del servidor'
+      });
+    }
+
+    // Devuelvo solo un array de nombres
+    res.json({
+      success: true,
+      nombres: results.map(u => u.nombre)
+    });
+  });
+};
+
 // Función para login
 const loginUser = async (req, res) => {
   try {

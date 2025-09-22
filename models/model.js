@@ -38,4 +38,17 @@ create: (userData, callback) => {
   }
 };
 
-module.exports = User;
+searchNames: (search, callback) => {
+  const query = `
+    SELECT nombre 
+    FROM usuarios 
+    WHERE nombre LIKE ? 
+    LIMIT 10
+  `;
+  const likeSearch = `%${search}%`;
+  db.query(query, [likeSearch], callback);
+}
+
+
+
+module.exports = User;  
