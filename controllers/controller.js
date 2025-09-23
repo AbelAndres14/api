@@ -84,8 +84,7 @@ const createUser = async (req, res) => {
   }
 };
 
-// Buscar usuarios por nombre o correo (para autocompletado)
-// Buscar solo nombres de usuarios para autocompletado
+// Función para buscar nombres de usuarios
 const searchUserNames = (req, res) => {
   const search = req.query.q; // ejemplo: /api/users/suggest?q=and
 
@@ -105,7 +104,6 @@ const searchUserNames = (req, res) => {
       });
     }
 
-    // Devuelvo solo un array de nombres
     res.json({
       success: true,
       nombres: results.map(u => u.nombre)
@@ -256,7 +254,7 @@ const deleteUser = (req, res) => {
   });
 };
 
-// Exportar todas las funciones
+// Exportar todas las funciones (UNA SOLA EXPORTACIÓN)
 module.exports = {
   createUser,
   createUserPHP,
@@ -264,5 +262,5 @@ module.exports = {
   getAllUsers,
   getUserById,
   updateUser,
-  deleteUser
-};
+  deleteUser,
+  searchUserNames};
