@@ -13,19 +13,17 @@ const User = {
     db.query('SELECT * FROM usuarios WHERE email = ?', [email], callback);
   },
 
- // En models/model.js
-create: (userData, callback) => {
-  const { nombre, email, password, telefono } = userData;
-  db.query(
-    'INSERT INTO usuarios (nombre, email, password, telefono) VALUES (?, ?, ?, ?)',
-    [nombre, email, password, telefono || ''],
-    callback
-  );
-},
+  create: (userData, callback) => {
+    const { nombre, email, password, telefono } = userData;
+    db.query(
+      'INSERT INTO usuarios (nombre, email, password, telefono) VALUES (?, ?, ?, ?)',
+      [nombre, email, password, telefono || ''],
+      callback
+    );
+  },
 
   update: (id, userData, callback) => {
     const { nombre, email } = userData;
-    // ✅ QUITA la columna images si no existe
     db.query(
       'UPDATE usuarios SET nombre = ?, email = ? WHERE id = ?',
       [nombre, email, id],
@@ -35,20 +33,19 @@ create: (userData, callback) => {
 
   delete: (id, callback) => {
     db.query('DELETE FROM usuarios WHERE id = ?', [id], callback);
+  },
+
+  // 👇 Aquí va bien colocada
+  searchNames: (search, callback) => {
+    const query = `
+      SELECT nombre 
+      FROM usuarios 
+      WHERE nombre LIKE ? 
+      LIMIT 10
+    `;
+    const likeSearch = `%${search}%`;
+    db.query(query, [likeSearch], callback);
   }
 };
 
-searchNames: (search, callback) => {
-  const query = `
-    SELECT nombre 
-    FROM usuarios 
-    WHERE nombre LIKE ? 
-    LIMIT 10
-  `;
-  const likeSearch = `%${search}%`;
-  db.query(query, [likeSearch], callback);
-}
-
-
-
-module.exports = User;  
+module.exports = User;
