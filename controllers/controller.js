@@ -263,4 +263,5 @@ module.exports = {
   getUserById,
   updateUser,
   deleteUser,
-  searchUserNames};
+  searchUserNames
+};
