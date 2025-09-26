@@ -30,7 +30,7 @@ const createViaje = async (req, res) => {
     const viajeData = {
       ubicacion,
       objeto,
-      destinatario: destinatarioId, // ID real
+        destinatario: String(destinatarioId), // obligatorio ID real
       estacion,
       fecha_creacion: fechaMySQL,
       estado: 'pendiente'
