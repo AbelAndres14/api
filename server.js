@@ -50,25 +50,27 @@ const io = new Server(server, {
 // Inyectamos Socket.IO en el controller
 setSocketInstance(io);
 
+// En server.js o donde inicialices Socket.IO
 const usuariosConectados = {}; // { userId: socketId }
 
 io.on('connection', (socket) => {
-  console.log('Usuario conectado: ' + socket.id);
+  console.log('🔌 Nuevo cliente conectado:', socket.id);
 
   socket.on('registrarUsuario', (userId) => {
     usuariosConectados[userId] = socket.id;
-    console.log(`✅ Usuario ${userId} registrado en sala ${socket.id}`);
+    console.log(`✅ Usuario registrado: ${userId}`);
   });
 
   socket.on('disconnect', () => {
-    // Limpiar usuarios desconectados
-    for (const uid in usuariosConectados) {
-      if (usuariosConectados[uid] === socket.id) {
-        delete usuariosConectados[uid];
+    for (const id in usuariosConectados) {
+      if (usuariosConectados[id] === socket.id) {
+        delete usuariosConectados[id];
+        console.log(`❌ Usuario desconectado: ${id}`);
       }
     }
   });
 });
+
 
 
 // -----------------------------------------------------
