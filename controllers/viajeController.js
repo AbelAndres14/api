@@ -78,22 +78,28 @@ const createViaje = async (req, res) => {
           });
           */
           
-          // Mientras tanto, intentar buscar por nombre en usuarios conectados
-          const usuarioEncontrado = Object.keys(usuariosConectados).find(userId => {
-            // Aquí podrías tener una lógica más compleja para mapear nombres a IDs
-            // Por ahora, simplemente verificamos si el destinatarioId coincide con algún userId
-            return userId === destinatarioId;
-          });
+          // Mapear nombres a IDs de usuario (temporal)
+          const mapeoNombresAIDs = {
+            "abel Hernández": "9",
+            "brenda": "1",
+            // Agrega más usuarios según necesites
+          };
 
-          if (usuarioEncontrado) {
-            io.to(usuariosConectados[usuarioEncontrado]).emit("notificacion", {
+          const nombreLimpio = destinatarioId.trim();
+          const idUsuario = mapeoNombresAIDs[nombreLimpio];
+          
+          if (idUsuario && usuariosConectados[idUsuario]) {
+            const socketId = usuariosConectados[idUsuario];
+            io.to(socketId).emit("notificacion", {
               titulo: "Nuevo objeto en camino",
               mensaje: `Se ha creado un viaje para entregarte: ${objeto}`,
               viaje: { id: results.insertId, ...viajeData }
             });
-            console.log(`🔔 Notificación enviada a usuario: ${usuarioEncontrado}`);
+            console.log(`🔔 Notificación enviada a ${nombreLimpio} (ID: ${idUsuario}, Socket: ${socketId})`);
           } else {
-            console.log(`⚠️ Usuario ${destinatarioId} no está conectado actualmente`);
+            console.log(`⚠️ Usuario ${nombreLimpio} no encontrado en mapeo o no está conectado`);
+            console.log(`Mapeo disponible:`, mapeoNombresAIDs);
+            console.log(`Usuarios conectados:`, usuariosConectados);
           }
         }
       } else {
