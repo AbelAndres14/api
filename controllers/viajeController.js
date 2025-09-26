@@ -1,5 +1,4 @@
 const Viaje = require('../models/viajeModel');
-const User = require('../models/userModel'); // Asume que tienes un modelo de usuario
 
 let io; // instancia de Socket.IO
 let usuariosConectados;
@@ -64,7 +63,7 @@ const createViaje = async (req, res) => {
           console.log(`🔍 Buscando usuario por nombre: ${destinatarioId}`);
           
           // Si tienes un modelo User, descomenta estas líneas:
-          
+          /*
           User.findByName(destinatarioId, (err, user) => {
             if (!err && user && usuariosConectados[user.id]) {
               io.to(usuariosConectados[user.id]).emit("notificacion", {
@@ -77,7 +76,7 @@ const createViaje = async (req, res) => {
               console.log(`⚠️ Usuario ${destinatarioId} no encontrado o no conectado`);
             }
           });
-          
+          */
           
           // Mientras tanto, intentar buscar por nombre en usuarios conectados
           const usuarioEncontrado = Object.keys(usuariosConectados).find(userId => {
