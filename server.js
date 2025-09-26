@@ -50,10 +50,10 @@ const io = new Server(server, {
 // Inyectamos Socket.IO en el controller
 setSocketInstance(io);
 
-// Manejo de usuarios conectados
-const usuariosConectados = {};
+const usuariosConectados = {}; // userId -> socketId
+
 io.on('connection', (socket) => {
-  console.log('🔗 Usuario conectado:', socket.id);
+  console.log('Usuario conectado:', socket.id);
 
   socket.on('registrarUsuario', (userId) => {
     usuariosConectados[userId] = socket.id;
@@ -61,16 +61,13 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-
-    // eliminar usuario desconectado
-    for (const [userId, id] of Object.entries(usuariosConectados)) {
-      if (id === socket.id) {
-        delete usuariosConectados[userId];
-        console.log('❌ Usuario desconectado:', socket.id);
-      }
+    // Opcional: limpiar usuariosConectados
+    for (const [uid, sid] of Object.entries(usuariosConectados)) {
+      if (sid === socket.id) delete usuariosConectados[uid];
     }
   });
 });
+
 // -----------------------------------------------------
 
 const viajeController = require('./controllers/viajeController');

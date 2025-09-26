@@ -47,13 +47,13 @@ const { ubicacion, objeto, destinatario, estacion, fechaCreacion } = req.body;
 
       // 🔔 Notificación al destinatario
       if (io && usuariosConectados[destinatarioId]) {
-        io.to(usuariosConectados[destinatarioId]).emit("notificacion", {
-          titulo: "Nuevo objeto en camino",
-          mensaje: `Se ha creado un viaje para entregarte: ${objeto}`,
-          viaje: { id: results.insertId, ...viajeData }
-        });
-        console.log(`🔔 Notificación enviada a usuario ID: ${destinatarioId}`);
-      }
+  io.to(usuariosConectados[destinatarioId]).emit("notificacion", {
+    titulo: "Nuevo objeto en camino",
+    mensaje: `Se ha creado un viaje para entregarte: ${objeto}`,
+    viaje: { id: results.insertId, ...viajeData }
+  });
+}
+
 
       res.status(201).json({
         success: true,
