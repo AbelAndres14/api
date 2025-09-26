@@ -36,7 +36,7 @@ const createViaje = async (req, res) => {
       estado: 'pendiente'
     };
 
-    Viaje.create(viajeData, (err, results) => {
+    Viaje.create(viajeData, async (err, results) => {
       if (err) {
         console.error('❌ Error creando viaje en DB:', err.sqlMessage || err);
         return res.status(500).json({
@@ -47,7 +47,7 @@ const createViaje = async (req, res) => {
 
       console.log('✅ Viaje creado exitosamente:', results.insertId);
 
-      // 🔔 Sistema de notificaciones mejorado
+      // 🔔 Sistema de notificaciones automático
       if (io) {
         // Verificar si destinatarioId es un ID numérico (usuario conectado por ID)
         if (!isNaN(destinatarioId) && usuariosConectados[destinatarioId]) {
@@ -59,47 +59,37 @@ const createViaje = async (req, res) => {
           });
           console.log(`🔔 Notificación enviada a usuario ID: ${destinatarioId} (Conectado)`);
         } else {
-          // Es un nombre, buscar el usuario en la base de datos
+          // Es un nombre, buscar el usuario usando la API de sugerencias
           console.log(`🔍 Buscando usuario por nombre: ${destinatarioId}`);
           
-          // Si tienes un modelo User, descomenta estas líneas:
-          /*
-          User.findByName(destinatarioId, (err, user) => {
-            if (!err && user && usuariosConectados[user.id]) {
-              io.to(usuariosConectados[user.id]).emit("notificacion", {
-                titulo: "Nuevo objeto en camino",
-                mensaje: `Se ha creado un viaje para entregarte: ${objeto}`,
-                viaje: { id: results.insertId, ...viajeData }
-              });
-              console.log(`🔔 Notificación enviada a ${user.nombre} (ID: ${user.id})`);
+          try {
+            const response = await fetch(`https://apiabel.teamsystem.space/api/users/suggest?q=${encodeURIComponent(destinatarioId.trim())}`);
+            const data = await response.json();
+            
+            if (data.success && data.usuarios.length > 0) {
+              // Buscar coincidencia exacta
+              const usuario = data.usuarios.find(u => 
+                u.nombre.toLowerCase().trim() === destinatarioId.toLowerCase().trim()
+              );
+              
+              if (usuario && usuariosConectados[usuario.id]) {
+                io.to(usuariosConectados[usuario.id]).emit("notificacion", {
+                  titulo: "Nuevo objeto en camino",
+                  mensaje: `Se ha creado un viaje para entregarte: ${objeto}`,
+                  viaje: { id: results.insertId, ...viajeData }
+                });
+                console.log(`🔔 Notificación enviada a ${usuario.nombre} (ID: ${usuario.id})`);
+              } else if (usuario) {
+                console.log(`⚠️ Usuario ${usuario.nombre} (ID: ${usuario.id}) no está conectado actualmente`);
+              } else {
+                console.log(`⚠️ No se encontró coincidencia exacta para: ${destinatarioId}`);
+                console.log(`Usuarios encontrados:`, data.usuarios.map(u => u.nombre));
+              }
             } else {
-              console.log(`⚠️ Usuario ${destinatarioId} no encontrado o no conectado`);
+              console.log(`⚠️ No se encontraron usuarios con el nombre: ${destinatarioId}`);
             }
-          });
-          */
-          
-          // Mapear nombres a IDs de usuario (temporal)
-          const mapeoNombresAIDs = {
-            "abel Hernández": "9",
-            "brenda": "1",
-            // Agrega más usuarios según necesites
-          };
-
-          const nombreLimpio = destinatarioId.trim();
-          const idUsuario = mapeoNombresAIDs[nombreLimpio];
-          
-          if (idUsuario && usuariosConectados[idUsuario]) {
-            const socketId = usuariosConectados[idUsuario];
-            io.to(socketId).emit("notificacion", {
-              titulo: "Nuevo objeto en camino",
-              mensaje: `Se ha creado un viaje para entregarte: ${objeto}`,
-              viaje: { id: results.insertId, ...viajeData }
-            });
-            console.log(`🔔 Notificación enviada a ${nombreLimpio} (ID: ${idUsuario}, Socket: ${socketId})`);
-          } else {
-            console.log(`⚠️ Usuario ${nombreLimpio} no encontrado en mapeo o no está conectado`);
-            console.log(`Mapeo disponible:`, mapeoNombresAIDs);
-            console.log(`Usuarios conectados:`, usuariosConectados);
+          } catch (error) {
+            console.error(`❌ Error buscando usuario en API:`, error);
           }
         }
       } else {
