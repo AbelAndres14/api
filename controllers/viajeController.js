@@ -16,7 +16,6 @@ const createViaje = async (req, res) => {
     console.log('📩 Datos del viaje recibidos:', req.body);
     console.log('🔌 Usuarios conectados actualmente:', Object.keys(usuariosConectados));
 
-    // Validaciones
     if (!ubicacion || !objeto || !destinatarioId || !estacion) {
       return res.status(400).json({
         success: false,
@@ -31,14 +30,13 @@ const createViaje = async (req, res) => {
     const viajeData = {
       ubicacion,
       objeto,
-      destinatario: destinatarioId, // ahora siempre es el ID real
+      destinatario: destinatarioId, // ID real
       estacion,
       fecha_creacion: fechaMySQL,
       estado: 'pendiente'
     };
 
-    // Crear viaje en DB
-    Viaje.create(viajeData, (err, results) => {
+    Viaje.create(viajeData, async (err, results) => {
       if (err) {
         console.error('❌ Error creando viaje en DB:', err.sqlMessage || err);
         return res.status(500).json({
@@ -49,16 +47,20 @@ const createViaje = async (req, res) => {
 
       console.log('✅ Viaje creado exitosamente:', results.insertId);
 
-      // 🔔 Notificación al usuario solo si está conectado
-      if (io && usuariosConectados[destinatarioId]) {
-        io.to(usuariosConectados[destinatarioId]).emit("notificacion", {
-          titulo: "Nuevo objeto en camino",
-          mensaje: `Se ha creado un viaje para entregarte: ${objeto}`,
-          viaje: { id: results.insertId, ...viajeData }
-        });
-        console.log(`🔔 Notificación enviada a usuario ID: ${destinatarioId}`);
+      if (io) {
+        const idStr = String(destinatarioId); // normalizamos como string
+        if (usuariosConectados[idStr]) {
+          io.to(usuariosConectados[idStr]).emit("notificacion", {
+            titulo: "Nuevo objeto en camino",
+            mensaje: `Se ha creado un viaje para entregarte: ${objeto}`,
+            viaje: { id: results.insertId, ...viajeData }
+          });
+          console.log(`🔔 Notificación enviada a usuario ID: ${idStr} (Conectado)`);
+        } else {
+          console.log(`⚠️ Usuario ${idStr} no está conectado actualmente`);
+        }
       } else {
-        console.log(`⚠️ Usuario ${destinatarioId} no está conectado actualmente`);
+        console.log('⚠️ Socket.IO no está disponible');
       }
 
       res.status(201).json({
@@ -76,6 +78,7 @@ const createViaje = async (req, res) => {
     });
   }
 };
+
 
 // Actualizar estado del viaje con notificación
 const updateViajeEstado = (req, res) => {

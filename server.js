@@ -57,19 +57,21 @@ io.on('connection', (socket) => {
   console.log('🔌 Nuevo cliente conectado:', socket.id);
 
   socket.on('registrarUsuario', (userId) => {
-    usuariosConectados[userId] = socket.id;
-    console.log(`✅ Usuario registrado: ${userId}`);
+    usuariosConectados[userId] = socket.id; // <- aquí se guarda el ID real
+    console.log('✅ Usuario registrado:', userId);
   });
 
   socket.on('disconnect', () => {
-    for (const id in usuariosConectados) {
+    // eliminar usuario desconectado
+    for (let id in usuariosConectados) {
       if (usuariosConectados[id] === socket.id) {
         delete usuariosConectados[id];
-        console.log(`❌ Usuario desconectado: ${id}`);
+        console.log('❌ Usuario desconectado:', id);
       }
     }
   });
 });
+
 
 
 
