@@ -12,8 +12,7 @@ const setSocketInstance = (socketInstance, usuarios) => {
 // Crear un nuevo viaje
 const createViaje = async (req, res) => {
   try {
-const { ubicacion, objeto, destinatario, estacion, fechaCreacion } = req.body;
-
+const { ubicacion, objeto, destinatarioId, estacion } = req.body;
     console.log('📩 Datos del viaje recibidos:', req.body);
 
     if (!ubicacion || !objeto || !destinatarioId || !estacion) {
