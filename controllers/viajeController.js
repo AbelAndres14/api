@@ -1,4 +1,5 @@
 const Viaje = require('../models/viajeModel');
+const User = require('../models/userModel'); // Asume que tienes un modelo de usuario
 
 let io; // instancia de Socket.IO
 let usuariosConectados;
@@ -12,15 +13,17 @@ const setSocketInstance = (socketInstance, usuarios) => {
 // Crear un nuevo viaje
 const createViaje = async (req, res) => {
   try {
-const { ubicacion, objeto, destinatarioId, estacion, fechaCreacion } = req.body;
+    const { ubicacion, objeto, destinatarioId, estacion, fechaCreacion } = req.body;
     console.log('📩 Datos del viaje recibidos:', req.body);
+    console.log('🔌 Usuarios conectados actualmente:', Object.keys(usuariosConectados));
 
-     if (!ubicacion || !objeto || !destinatarioId || !estacion) {
+    if (!ubicacion || !objeto || !destinatarioId || !estacion) {
       return res.status(400).json({
         success: false,
         error: 'Ubicación, objeto, destinatario y estación son requeridos'
       });
     }
+
     const fechaMySQL = fechaCreacion
       ? new Date(fechaCreacion).toISOString().slice(0, 19).replace('T', ' ')
       : new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -28,7 +31,7 @@ const { ubicacion, objeto, destinatarioId, estacion, fechaCreacion } = req.body;
     const viajeData = {
       ubicacion,
       objeto,
-      destinatario: destinatarioId, // guardamos el ID directamente
+      destinatario: destinatarioId, // guardamos el ID o nombre
       estacion,
       fecha_creacion: fechaMySQL,
       estado: 'pendiente'
@@ -43,15 +46,60 @@ const { ubicacion, objeto, destinatarioId, estacion, fechaCreacion } = req.body;
         });
       }
 
-      // 🔔 Notificación al destinatario
-      if (io && usuariosConectados[destinatarioId]) {
-  io.to(usuariosConectados[destinatarioId]).emit("notificacion", {
-    titulo: "Nuevo objeto en camino",
-    mensaje: `Se ha creado un viaje para entregarte: ${objeto}`,
-    viaje: { id: results.insertId, ...viajeData }
-  });
-}
+      console.log('✅ Viaje creado exitosamente:', results.insertId);
 
+      // 🔔 Sistema de notificaciones mejorado
+      if (io) {
+        // Verificar si destinatarioId es un ID numérico (usuario conectado por ID)
+        if (!isNaN(destinatarioId) && usuariosConectados[destinatarioId]) {
+          // Es un ID y el usuario está conectado
+          io.to(usuariosConectados[destinatarioId]).emit("notificacion", {
+            titulo: "Nuevo objeto en camino",
+            mensaje: `Se ha creado un viaje para entregarte: ${objeto}`,
+            viaje: { id: results.insertId, ...viajeData }
+          });
+          console.log(`🔔 Notificación enviada a usuario ID: ${destinatarioId} (Conectado)`);
+        } else {
+          // Es un nombre, buscar el usuario en la base de datos
+          console.log(`🔍 Buscando usuario por nombre: ${destinatarioId}`);
+          
+          // Si tienes un modelo User, descomenta estas líneas:
+          
+          User.findByName(destinatarioId, (err, user) => {
+            if (!err && user && usuariosConectados[user.id]) {
+              io.to(usuariosConectados[user.id]).emit("notificacion", {
+                titulo: "Nuevo objeto en camino",
+                mensaje: `Se ha creado un viaje para entregarte: ${objeto}`,
+                viaje: { id: results.insertId, ...viajeData }
+              });
+              console.log(`🔔 Notificación enviada a ${user.nombre} (ID: ${user.id})`);
+            } else {
+              console.log(`⚠️ Usuario ${destinatarioId} no encontrado o no conectado`);
+            }
+          });
+          
+          
+          // Mientras tanto, intentar buscar por nombre en usuarios conectados
+          const usuarioEncontrado = Object.keys(usuariosConectados).find(userId => {
+            // Aquí podrías tener una lógica más compleja para mapear nombres a IDs
+            // Por ahora, simplemente verificamos si el destinatarioId coincide con algún userId
+            return userId === destinatarioId;
+          });
+
+          if (usuarioEncontrado) {
+            io.to(usuariosConectados[usuarioEncontrado]).emit("notificacion", {
+              titulo: "Nuevo objeto en camino",
+              mensaje: `Se ha creado un viaje para entregarte: ${objeto}`,
+              viaje: { id: results.insertId, ...viajeData }
+            });
+            console.log(`🔔 Notificación enviada a usuario: ${usuarioEncontrado}`);
+          } else {
+            console.log(`⚠️ Usuario ${destinatarioId} no está conectado actualmente`);
+          }
+        }
+      } else {
+        console.log('⚠️ Socket.IO no está disponible');
+      }
 
       res.status(201).json({
         success: true,
@@ -105,17 +153,34 @@ const updateViajeEstado = (req, res) => {
       Viaje.getById(id, (err, rows) => {
         if (!err && rows.length > 0) {
           const viaje = rows[0];
-          io.to(String(viaje.destinatario)).emit("notificacion", {
-            titulo: "Actualización de tu viaje",
-            mensaje: `El estado de tu objeto (${viaje.objeto}) cambió a: ${estado}`,
-            viaje
-          });
-          console.log(`🔔 Notificación de estado enviada a usuario ID: ${viaje.destinatario}`);
+          const destinatarioId = String(viaje.destinatario);
+          
+          // Verificar si el usuario está conectado
+          if (usuariosConectados[destinatarioId]) {
+            io.to(usuariosConectados[destinatarioId]).emit("notificacion", {
+              titulo: "Actualización de tu viaje",
+              mensaje: `El estado de tu objeto (${viaje.objeto}) cambió a: ${estado}`,
+              viaje
+            });
+            console.log(`🔔 Notificación de estado enviada a usuario: ${destinatarioId}`);
+          } else {
+            console.log(`⚠️ Usuario ${destinatarioId} no está conectado para recibir actualización`);
+          }
         }
       });
     }
 
     res.json({ success: true, message: '✅ Estado del viaje actualizado' });
+  });
+};
+
+// Función para obtener usuarios conectados (útil para debugging)
+const getUsuariosConectados = (req, res) => {
+  const usuariosActivos = Object.keys(usuariosConectados);
+  res.json({ 
+    success: true, 
+    usuariosConectados: usuariosActivos.length,
+    usuarios: usuariosActivos 
   });
 };
 
@@ -183,5 +248,6 @@ module.exports = {
   getViajeById,
   updateViajeEstado,
   deleteViaje,
-  setSocketInstance
+  setSocketInstance,
+  getUsuariosConectados // Nueva función para debugging
 };

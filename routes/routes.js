@@ -24,5 +24,6 @@ router.get('/viajes/:id', viajeController.getViajeById);
 router.put('/viajes/:id/estado', viajeController.updateViajeEstado);
 router.delete('/viajes/:id', viajeController.deleteViaje);      // DELETE /api/viajes/:id
 router.get('/users/suggest', searchUserNames);
+router.get('/usuarios-conectados', viajeController.getUsuariosConectados);
 
 module.exports = router;
