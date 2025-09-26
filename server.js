@@ -51,6 +51,7 @@ const io = new Server(server, {
 setSocketInstance(io);
 
 // Manejo de usuarios conectados
+const usuariosConectados = {};
 io.on('connection', (socket) => {
   console.log('🔗 Usuario conectado:', socket.id);
 
@@ -60,6 +61,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
+
     // eliminar usuario desconectado
     for (const [userId, id] of Object.entries(usuariosConectados)) {
       if (id === socket.id) {
