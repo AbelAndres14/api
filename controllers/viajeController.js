@@ -15,13 +15,12 @@ const createViaje = async (req, res) => {
 const { ubicacion, objeto, destinatarioId, estacion } = req.body;
     console.log('📩 Datos del viaje recibidos:', req.body);
 
-    if (!ubicacion || !objeto || !destinatarioId || !estacion) {
+     if (!ubicacion || !objeto || !destinatarioId || !estacion) {
       return res.status(400).json({
         success: false,
-        error: 'Ubicación, objeto, destinatarioId y estación son requeridos'
+        error: 'Ubicación, objeto, destinatario y estación son requeridos'
       });
     }
-
     const fechaMySQL = fechaCreacion
       ? new Date(fechaCreacion).toISOString().slice(0, 19).replace('T', ' ')
       : new Date().toISOString().slice(0, 19).replace('T', ' ');
