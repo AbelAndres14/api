@@ -54,14 +54,19 @@ setSocketInstance(io);
 io.on('connection', (socket) => {
   console.log('🔗 Usuario conectado:', socket.id);
 
-  // Cada usuario se registra con su ID
   socket.on('registrarUsuario', (userId) => {
-    socket.join(userId); // sala por userId
-    console.log(`✅ Usuario ${userId} registrado en sala ${userId}`);
+    usuariosConectados[userId] = socket.id;
+    console.log(`✅ Usuario ${userId} registrado en sala ${socket.id}`);
   });
 
   socket.on('disconnect', () => {
-    console.log('❌ Usuario desconectado:', socket.id);
+    // eliminar usuario desconectado
+    for (const [userId, id] of Object.entries(usuariosConectados)) {
+      if (id === socket.id) {
+        delete usuariosConectados[userId];
+        console.log('❌ Usuario desconectado:', socket.id);
+      }
+    }
   });
 });
 // -----------------------------------------------------
