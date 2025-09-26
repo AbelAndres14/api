@@ -73,6 +73,9 @@ io.on('connection', (socket) => {
 });
 // -----------------------------------------------------
 
+const viajeController = require('./controllers/viajeController');
+viajeController.setSocketInstance(io, usuariosConectados);
+
 // Iniciar servidor
 server.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en localhost:${PORT}`);
