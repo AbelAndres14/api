@@ -105,9 +105,13 @@ const searchUserNames = (req, res) => {
     }
 
     res.json({
-      success: true,
-      nombres: results.map(u => u.nombre)
-    });
+  success: true,
+  usuarios: results.map(u => ({
+    id: u.id,      // el ID real del usuario
+    nombre: u.nombre
+  }))
+});
+
   });
 };
 

@@ -1,9 +1,9 @@
 const Viaje = require('../models/viajeModel');
 
-let io; // instancia de Socket.IO que se inyectará desde server.js
+let io; // instancia de Socket.IO
 let usuariosConectados;
 
-// Función para inyectar Socket.IO
+// Función para inyectar Socket.IO y usuarios conectados
 const setSocketInstance = (socketInstance, usuarios) => {
   io = socketInstance;
   usuariosConectados = usuarios;
@@ -12,14 +12,14 @@ const setSocketInstance = (socketInstance, usuarios) => {
 // Crear un nuevo viaje
 const createViaje = async (req, res) => {
   try {
-    const { ubicacion, objeto, destinatario, estacion, fechaCreacion } = req.body;
+    const { ubicacion, objeto, destinatarioId, estacion, fechaCreacion } = req.body;
 
     console.log('📩 Datos del viaje recibidos:', req.body);
 
-    if (!ubicacion || !objeto || !destinatario || !estacion) {
+    if (!ubicacion || !objeto || !destinatarioId || !estacion) {
       return res.status(400).json({
         success: false,
-        error: 'Ubicación, objeto, destinatario y estación son requeridos'
+        error: 'Ubicación, objeto, destinatarioId y estación son requeridos'
       });
     }
 
@@ -30,7 +30,7 @@ const createViaje = async (req, res) => {
     const viajeData = {
       ubicacion,
       objeto,
-      destinatario,
+      destinatario: destinatarioId, // guardamos el ID directamente
       estacion,
       fecha_creacion: fechaMySQL,
       estado: 'pendiente'
@@ -46,14 +46,14 @@ const createViaje = async (req, res) => {
       }
 
       // 🔔 Notificación al destinatario
-      if (io && usuariosConectados[destinatarioId]) {  // destinatarioId = el ID real del usuario
-  io.to(usuariosConectados[destinatarioId]).emit("notificacion", {
-    titulo: "Nuevo objeto en camino",
-    mensaje: `Se ha creado un viaje para entregarte: ${objeto}`,
-    viaje: { id: results.insertId, ...viajeData }
-  });
-  console.log(`🔔 Notificación enviada a ${destinatarioId}`);
-}
+      if (io && usuariosConectados[destinatarioId]) {
+        io.to(usuariosConectados[destinatarioId]).emit("notificacion", {
+          titulo: "Nuevo objeto en camino",
+          mensaje: `Se ha creado un viaje para entregarte: ${objeto}`,
+          viaje: { id: results.insertId, ...viajeData }
+        });
+        console.log(`🔔 Notificación enviada a usuario ID: ${destinatarioId}`);
+      }
 
       res.status(201).json({
         success: true,
@@ -94,6 +94,7 @@ const updateViajeEstado = (req, res) => {
         error: 'Error al actualizar el viaje'
       });
     }
+
     if (results.affectedRows === 0) {
       return res.status(404).json({
         success: false,
@@ -111,7 +112,7 @@ const updateViajeEstado = (req, res) => {
             mensaje: `El estado de tu objeto (${viaje.objeto}) cambió a: ${estado}`,
             viaje
           });
-          console.log(`🔔 Notificación de estado enviada a ${viaje.destinatario}`);
+          console.log(`🔔 Notificación de estado enviada a usuario ID: ${viaje.destinatario}`);
         }
       });
     }
@@ -120,7 +121,7 @@ const updateViajeEstado = (req, res) => {
   });
 };
 
-// Las demás funciones permanecen iguales
+// Obtener todos los viajes
 const getAllViajes = (req, res) => {
   Viaje.getAll((err, results) => {
     if (err) {
@@ -134,6 +135,7 @@ const getAllViajes = (req, res) => {
   });
 };
 
+// Obtener viaje por ID
 const getViajeById = (req, res) => {
   const id = req.params.id;
 
@@ -155,6 +157,7 @@ const getViajeById = (req, res) => {
   });
 };
 
+// Eliminar viaje
 const deleteViaje = (req, res) => {
   const id = req.params.id;
 
@@ -182,5 +185,5 @@ module.exports = {
   getViajeById,
   updateViajeEstado,
   deleteViaje,
-  setSocketInstance // <-- exportamos para inyectar Socket.IO desde server.js
+  setSocketInstance
 };
