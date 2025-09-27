@@ -14,10 +14,13 @@ const User = {
   },
 
   create: (userData, callback) => {
-    const { nombre, email, password, telefono } = userData;
+    // 🔧 AGREGADO: Extraer también el campo rostro
+    const { nombre, email, password, telefono, rostro } = userData;
+    
+    // 🔧 MODIFICADO: Query para incluir el campo rostro
     db.query(
-      'INSERT INTO usuarios (nombre, email, password, telefono) VALUES (?, ?, ?, ?)',
-      [nombre, email, password, telefono || ''],
+      'INSERT INTO usuarios (nombre, email, password, telefono, rostro) VALUES (?, ?, ?, ?, ?)',
+      [nombre, email, password, telefono || '', rostro || null],
       callback
     );
   },
@@ -35,7 +38,6 @@ const User = {
     db.query('DELETE FROM usuarios WHERE id = ?', [id], callback);
   },
 
-  // 👇 Aquí va bien colocada
   searchNames: (search, callback) => {
     const query = `
       SELECT nombre 
