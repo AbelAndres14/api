@@ -4,14 +4,23 @@ const bcrypt = require('bcryptjs');
 // Crear usuario - ENDPOINT PRINCIPAL
 const createUser = async (req, res) => {
   try {
-    const { nombre, apellido, password, telefono, correo } = req.body;
+    // 🔧 AGREGADO: Extraer también el campo rostro
+    const { nombre, apellido, password, telefono, correo, rostro } = req.body;
 
-    console.log('Datos recibidos:', req.body);
+    console.log('Datos recibidos:', {
+      nombre,
+      apellido,
+      correo,
+      telefono,
+      tieneRostro: !!rostro,
+      tamañoRostro: rostro ? `${Math.round(rostro.length / 1024)} KB` : 'Sin rostro'
+    });
 
-    if (!nombre || !apellido || !password || !telefono || !correo) {
+    // 🔧 AGREGADO: Validar también que rostro esté presente
+    if (!nombre || !apellido || !password || !telefono || !correo || !rostro) {
       return res.status(400).json({
         success: false,
-        error: 'Nombre, apellido, password, teléfono y correo son requeridos'
+        error: 'Nombre, apellido, password, teléfono, correo y rostro son requeridos'
       });
     }
 
@@ -36,13 +45,16 @@ const createUser = async (req, res) => {
       try {
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Crear el usuario con la estructura correcta
+        // 🔧 AGREGADO: Incluir el campo rostro en userData
         const userData = {
           nombre: nombre + ' ' + apellido, // Combinar nombre y apellido
           email: correo,
           password: hashedPassword, // Contraseña hasheada
-          telefono: telefono
+          telefono: telefono,
+          rostro: rostro // 👈 CAMPO AGREGADO
         };
+
+        console.log('Creando usuario con rostro de tamaño:', rostro.length, 'caracteres');
 
         User.create(userData, (err, results) => {
           if (err) {
@@ -53,6 +65,8 @@ const createUser = async (req, res) => {
             });
           }
 
+          console.log('Usuario creado exitosamente con ID:', results.insertId);
+
           res.status(201).json({
             success: true,
             message: 'Usuario registrado exitosamente',
@@ -61,7 +75,8 @@ const createUser = async (req, res) => {
               nombre: nombre,
               apellido: apellido,
               telefono: telefono,
-              correo: correo
+              correo: correo,
+              tieneRostro: true // Confirmar que se guardó el rostro
             }
           });
         });
@@ -195,7 +210,8 @@ const createUserPHP = (req, res) => {
       apellido: req.body.apellido,
       password: req.body.password,
       telefono: req.body.telefono,
-      correo: req.body.correo
+      correo: req.body.correo,
+      rostro: req.body.rostro // 👈 AGREGADO TAMBIÉN AQUÍ
     };
     createUser(req, res);
   } else {
