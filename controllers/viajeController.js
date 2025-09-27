@@ -1,7 +1,7 @@
 const Viaje = require('../models/viajeModel');
 
-let io; // instancia de Socket.IO
-let usuariosConectados; // { userId: socketId }
+let io; 
+let usuariosConectados; 
 
 // Función para inyectar Socket.IO y usuarios conectados
 const setSocketInstance = (socketInstance, usuarios) => {
@@ -48,7 +48,7 @@ const createViaje = async (req, res) => {
       console.log('✅ Viaje creado exitosamente:', results.insertId);
 
       if (io) {
-        const idStr = String(destinatarioId); // normalizamos como string
+        const idStr = String(destinatarioId); 
         if (usuariosConectados[idStr]) {
           io.to(usuariosConectados[idStr]).emit("notificacion", {
             titulo: "Nuevo objeto en camino",

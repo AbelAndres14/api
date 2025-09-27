@@ -45,13 +45,13 @@ const createUser = async (req, res) => {
       try {
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // 🔧 AGREGADO: Incluir el campo rostro en userData
+     
         const userData = {
           nombre: nombre + ' ' + apellido, // Combinar nombre y apellido
           email: correo,
           password: hashedPassword, // Contraseña hasheada
           telefono: telefono,
-          rostro: rostro // 👈 CAMPO AGREGADO
+          rostro: rostro 
         };
 
         console.log('Creando usuario con rostro de tamaño:', rostro.length, 'caracteres');
@@ -101,7 +101,7 @@ const createUser = async (req, res) => {
 
 // Función para buscar nombres de usuarios
 const searchUserNames = (req, res) => {
-  const search = req.query.q; // ejemplo: /api/users/suggest?q=and
+  const search = req.query.q; 
 
   if (!search || search.trim() === '') {
     return res.status(400).json({
@@ -211,7 +211,7 @@ const createUserPHP = (req, res) => {
       password: req.body.password,
       telefono: req.body.telefono,
       correo: req.body.correo,
-      rostro: req.body.rostro // 👈 AGREGADO TAMBIÉN AQUÍ
+      rostro: req.body.rostro 
     };
     createUser(req, res);
   } else {
