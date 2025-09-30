@@ -27,5 +27,4 @@ router.delete('/viajes/:id', viajeController.deleteViaje);      // DELETE /api/v
 router.get('/users/suggest', searchUserNames);
 router.get('/usuarios-conectados', viajeController.getUsuariosConectados);
 
-router.post('/rostro', rostroController.validarRostro);
 module.exports = router;
