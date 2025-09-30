@@ -40,7 +40,7 @@ const User = {
 
   searchNames: (search, callback) => {
     const query = `
-      SELECT nombre 
+      SELECT id, nombre 
       FROM usuarios 
       WHERE nombre LIKE ? 
       LIMIT 10
