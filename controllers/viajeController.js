@@ -10,9 +10,8 @@ const setSocketInstance = (socketInstance, usuarios) => {
 
 const createViaje = async (req, res) => {
   try {
-    const { ubicacion, objeto, destinatarioId, estacion, fechaCreacion } = req.body;
+    const { ubicacion, objeto, destinatarioId, remitenteId, estacion, fechaCreacion } = req.body;
     console.log('📩 Datos del viaje recibidos:', req.body);
-    console.log('🔌 Usuarios conectados actualmente:', Object.keys(usuariosConectados));
 
     if (!ubicacion || !objeto || !destinatarioId || !estacion) {
       return res.status(400).json({
@@ -29,6 +28,7 @@ const createViaje = async (req, res) => {
       ubicacion,
       objeto,
       destinatario: String(destinatarioId),
+      remitente: String(remitenteId ?? ''),  // ✅ guardamos quién envía
       estacion,
       fecha_creacion: fechaMySQL,
       estado: 'pendiente'
@@ -37,10 +37,7 @@ const createViaje = async (req, res) => {
     Viaje.create(viajeData, async (err, results) => {
       if (err) {
         console.error('❌ Error creando viaje en DB:', err.sqlMessage || err);
-        return res.status(500).json({
-          success: false,
-          error: 'Error al crear el viaje en la base de datos'
-        });
+        return res.status(500).json({ success: false, error: 'Error al crear el viaje en la base de datos' });
       }
 
       console.log('✅ Viaje creado exitosamente:', results.insertId);
@@ -53,9 +50,9 @@ const createViaje = async (req, res) => {
             mensaje: `Se ha creado un viaje para entregarte: ${objeto}`,
             viaje: { id: results.insertId, ...viajeData }
           });
-          console.log(`🔔 Notificación enviada a usuario ID: ${idStr} (Conectado)`);
+          console.log(`🔔 Notificación enviada a usuario ID: ${idStr}`);
         } else {
-          console.log(`⚠️ Usuario ${idStr} no está conectado actualmente`);
+          console.log(`⚠️ Usuario ${idStr} no está conectado`);
         }
       }
 
@@ -76,13 +73,11 @@ const updateViajeEstado = (req, res) => {
   const id = req.params.id;
   const { estado } = req.body;
 
-  if (!estado) {
-    return res.status(400).json({ success: false, error: 'Estado es requerido' });
-  }
+  if (!estado) return res.status(400).json({ success: false, error: 'Estado es requerido' });
 
   Viaje.updateEstado(id, estado, (err, results) => {
     if (err) {
-      console.error('❌ Error actualizando estado de viaje:', err);
+      console.error('❌ Error actualizando estado:', err);
       return res.status(500).json({ success: false, error: 'Error al actualizar el viaje' });
     }
     if (results.affectedRows === 0) {
@@ -116,10 +111,7 @@ const getUsuariosConectados = (req, res) => {
 
 const getAllViajes = (req, res) => {
   Viaje.getAll((err, results) => {
-    if (err) {
-      console.error('❌ Error obteniendo viajes:', err);
-      return res.status(500).json({ success: false, error: 'Error al obtener los viajes' });
-    }
+    if (err) return res.status(500).json({ success: false, error: 'Error al obtener los viajes' });
     res.json({ success: true, viajes: results });
   });
 };
@@ -127,25 +119,16 @@ const getAllViajes = (req, res) => {
 const getViajeById = (req, res) => {
   const id = req.params.id;
   Viaje.getById(id, (err, results) => {
-    if (err) {
-      console.error('❌ Error obteniendo viaje por ID:', err);
-      return res.status(500).json({ success: false, error: 'Error al obtener el viaje' });
-    }
-    if (!results || results.length === 0) {
-      return res.status(404).json({ success: false, message: 'Viaje no encontrado' });
-    }
+    if (err) return res.status(500).json({ success: false, error: 'Error al obtener el viaje' });
+    if (!results || results.length === 0) return res.status(404).json({ success: false, message: 'Viaje no encontrado' });
     res.json({ success: true, viaje: results[0] });
   });
 };
 
-// ✅ NUEVO: viajes del usuario (donde es destinatario)
 const getViajesByUsuario = (req, res) => {
   const userId = req.params.userId;
   Viaje.getByUsuario(userId, (err, results) => {
-    if (err) {
-      console.error('❌ Error obteniendo viajes del usuario:', err);
-      return res.status(500).json({ success: false, error: 'Error al obtener los viajes' });
-    }
+    if (err) return res.status(500).json({ success: false, error: 'Error al obtener los viajes' });
     res.json({ success: true, viajes: results });
   });
 };
@@ -153,13 +136,8 @@ const getViajesByUsuario = (req, res) => {
 const deleteViaje = (req, res) => {
   const id = req.params.id;
   Viaje.delete(id, (err, results) => {
-    if (err) {
-      console.error('❌ Error eliminando viaje:', err);
-      return res.status(500).json({ success: false, error: 'Error al eliminar el viaje' });
-    }
-    if (results.affectedRows === 0) {
-      return res.status(404).json({ success: false, message: 'Viaje no encontrado' });
-    }
+    if (err) return res.status(500).json({ success: false, error: 'Error al eliminar el viaje' });
+    if (results.affectedRows === 0) return res.status(404).json({ success: false, message: 'Viaje no encontrado' });
     res.json({ success: true, message: '✅ Viaje eliminado' });
   });
 };

@@ -1,16 +1,16 @@
-// models/viajeModel.js
 const db = require('../config/database');
 
 const Viaje = {
   create: (viajeData, callback) => {
     const query = `
-      INSERT INTO viajes (ubicacion, objeto, destinatario, estacion, fecha_creacion, estado) 
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO viajes (ubicacion, objeto, destinatario, remitente, estacion, fecha_creacion, estado) 
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
     const values = [
       viajeData.ubicacion,
       viajeData.objeto,
       viajeData.destinatario,
+      viajeData.remitente,
       viajeData.estacion,
       viajeData.fecha_creacion,
       viajeData.estado
@@ -20,7 +20,7 @@ const Viaje = {
 
   getAll: (callback) => {
     const query = `
-      SELECT id, ubicacion, objeto, destinatario, estacion, fecha_creacion, estado, 
+      SELECT id, ubicacion, objeto, destinatario, remitente, estacion, fecha_creacion, estado, 
              DATE_FORMAT(fecha_creacion, '%Y-%m-%d %H:%i:%s') as fecha_formateada
       FROM viajes 
       ORDER BY fecha_creacion DESC
@@ -30,7 +30,7 @@ const Viaje = {
 
   getById: (id, callback) => {
     const query = `
-      SELECT id, ubicacion, objeto, destinatario, estacion, fecha_creacion, estado,
+      SELECT id, ubicacion, objeto, destinatario, remitente, estacion, fecha_creacion, estado,
              DATE_FORMAT(fecha_creacion, '%Y-%m-%d %H:%i:%s') as fecha_formateada
       FROM viajes 
       WHERE id = ?
@@ -38,21 +38,21 @@ const Viaje = {
     db.query(query, [id], callback);
   },
 
-  // ✅ NUEVO: viajes donde el usuario es destinatario
+  // Viajes donde el usuario es destinatario O remitente
   getByUsuario: (userId, callback) => {
     const query = `
-      SELECT id, ubicacion, objeto, destinatario, estacion, fecha_creacion, estado,
+      SELECT id, ubicacion, objeto, destinatario, remitente, estacion, fecha_creacion, estado,
              DATE_FORMAT(fecha_creacion, '%Y-%m-%d %H:%i:%s') as fecha_formateada
       FROM viajes 
-      WHERE destinatario = ?
+      WHERE destinatario = ? OR remitente = ?
       ORDER BY fecha_creacion DESC
     `;
-    db.query(query, [String(userId)], callback);
+    db.query(query, [String(userId), String(userId)], callback);
   },
 
   getByEstado: (estado, callback) => {
     const query = `
-      SELECT id, ubicacion, objeto, destinatario, estacion, fecha_creacion, estado,
+      SELECT id, ubicacion, objeto, destinatario, remitente, estacion, fecha_creacion, estado,
              DATE_FORMAT(fecha_creacion, '%Y-%m-%d %H:%i:%s') as fecha_formateada
       FROM viajes 
       WHERE estado = ?
