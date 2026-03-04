@@ -1,15 +1,13 @@
 const Viaje = require('../models/viajeModel');
 
-let io; 
-let usuariosConectados; 
+let io;
+let usuariosConectados;
 
-// Función para inyectar Socket.IO y usuarios conectados
 const setSocketInstance = (socketInstance, usuarios) => {
   io = socketInstance;
   usuariosConectados = usuarios;
 };
 
-// Crear un nuevo viaje
 const createViaje = async (req, res) => {
   try {
     const { ubicacion, objeto, destinatarioId, estacion, fechaCreacion } = req.body;
@@ -30,7 +28,7 @@ const createViaje = async (req, res) => {
     const viajeData = {
       ubicacion,
       objeto,
-        destinatario: String(destinatarioId), // obligatorio ID real
+      destinatario: String(destinatarioId),
       estacion,
       fecha_creacion: fechaMySQL,
       estado: 'pendiente'
@@ -48,7 +46,7 @@ const createViaje = async (req, res) => {
       console.log('✅ Viaje creado exitosamente:', results.insertId);
 
       if (io) {
-        const idStr = String(destinatarioId); 
+        const idStr = String(destinatarioId);
         if (usuariosConectados[idStr]) {
           io.to(usuariosConectados[idStr]).emit("notificacion", {
             titulo: "Nuevo objeto en camino",
@@ -59,8 +57,6 @@ const createViaje = async (req, res) => {
         } else {
           console.log(`⚠️ Usuario ${idStr} no está conectado actualmente`);
         }
-      } else {
-        console.log('⚠️ Socket.IO no está disponible');
       }
 
       res.status(201).json({
@@ -72,58 +68,38 @@ const createViaje = async (req, res) => {
 
   } catch (error) {
     console.error('🔥 Error inesperado en createViaje:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error interno del servidor'
-    });
+    res.status(500).json({ success: false, error: 'Error interno del servidor' });
   }
 };
 
-
-// Actualizar estado del viaje con notificación
 const updateViajeEstado = (req, res) => {
   const id = req.params.id;
   const { estado } = req.body;
 
   if (!estado) {
-    return res.status(400).json({
-      success: false,
-      error: 'Estado es requerido'
-    });
+    return res.status(400).json({ success: false, error: 'Estado es requerido' });
   }
 
   Viaje.updateEstado(id, estado, (err, results) => {
     if (err) {
       console.error('❌ Error actualizando estado de viaje:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'Error al actualizar el viaje'
-      });
+      return res.status(500).json({ success: false, error: 'Error al actualizar el viaje' });
     }
-
     if (results.affectedRows === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Viaje no encontrado'
-      });
+      return res.status(404).json({ success: false, message: 'Viaje no encontrado' });
     }
 
-    // 🔔 Notificación al destinatario sobre cambio de estado
     if (io) {
       Viaje.getById(id, (err, rows) => {
         if (!err && rows.length > 0) {
           const viaje = rows[0];
           const destinatarioId = String(viaje.destinatario);
-
           if (usuariosConectados[destinatarioId]) {
             io.to(usuariosConectados[destinatarioId]).emit("notificacion", {
               titulo: "Actualización de tu viaje",
               mensaje: `El estado de tu objeto (${viaje.objeto}) cambió a: ${estado}`,
               viaje
             });
-            console.log(`🔔 Notificación de estado enviada a usuario ID: ${destinatarioId}`);
-          } else {
-            console.log(`⚠️ Usuario ${destinatarioId} no está conectado para recibir actualización`);
           }
         }
       });
@@ -133,17 +109,11 @@ const updateViajeEstado = (req, res) => {
   });
 };
 
-// Obtener usuarios conectados (debugging)
 const getUsuariosConectados = (req, res) => {
   const usuariosActivos = Object.keys(usuariosConectados);
-  res.json({ 
-    success: true, 
-    usuariosConectados: usuariosActivos.length,
-    usuarios: usuariosActivos 
-  });
+  res.json({ success: true, usuariosConectados: usuariosActivos.length, usuarios: usuariosActivos });
 };
 
-// Obtener todos los viajes
 const getAllViajes = (req, res) => {
   Viaje.getAll((err, results) => {
     if (err) {
@@ -154,7 +124,6 @@ const getAllViajes = (req, res) => {
   });
 };
 
-// Obtener viaje por ID
 const getViajeById = (req, res) => {
   const id = req.params.id;
   Viaje.getById(id, (err, results) => {
@@ -169,7 +138,18 @@ const getViajeById = (req, res) => {
   });
 };
 
-// Eliminar viaje
+// ✅ NUEVO: viajes del usuario (donde es destinatario)
+const getViajesByUsuario = (req, res) => {
+  const userId = req.params.userId;
+  Viaje.getByUsuario(userId, (err, results) => {
+    if (err) {
+      console.error('❌ Error obteniendo viajes del usuario:', err);
+      return res.status(500).json({ success: false, error: 'Error al obtener los viajes' });
+    }
+    res.json({ success: true, viajes: results });
+  });
+};
+
 const deleteViaje = (req, res) => {
   const id = req.params.id;
   Viaje.delete(id, (err, results) => {
@@ -188,6 +168,7 @@ module.exports = {
   createViaje,
   getAllViajes,
   getViajeById,
+  getViajesByUsuario,
   updateViajeEstado,
   deleteViaje,
   setSocketInstance,
