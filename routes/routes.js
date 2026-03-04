@@ -1,18 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/controller');
-const viajeController = require('../controllers/viajeController'); // plural
+const viajeController = require('../controllers/viajeController');
 const rostroController = require('../controllers/rostro');
 const { searchUserNames } = require('../controllers/controller');
 
-
-// Ruta para crear usuario (que coincide con tu app React Native)
 router.post('/usuario', userController.createUser);
-
-// Ruta específica para el parámetro ?accion=crear
 router.post('/usuario.php', userController.createUserPHP);
-
-// Otras rutas para tu API
 router.get('/usuarios', userController.getAllUsers);
 router.get('/usuario/:id', userController.getUserById);
 router.put('/usuario/:id', userController.updateUser);
@@ -21,9 +15,10 @@ router.post('/usuario/login', userController.loginUser);
 
 router.post('/viajes', viajeController.createViaje);
 router.get('/viajes', viajeController.getAllViajes);
+router.get('/viajes/usuario/:userId', viajeController.getViajesByUsuario); // ✅ ANTES de /viajes/:id
 router.get('/viajes/:id', viajeController.getViajeById);
 router.put('/viajes/:id/estado', viajeController.updateViajeEstado);
-router.delete('/viajes/:id', viajeController.deleteViaje);      // DELETE /api/viajes/:id
+router.delete('/viajes/:id', viajeController.deleteViaje);
 router.get('/users/suggest', searchUserNames);
 router.get('/usuarios-conectados', viajeController.getUsuariosConectados);
 
