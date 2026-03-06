@@ -61,6 +61,13 @@ io.on('connection', (socket) => {
     console.log('✅ Usuario registrado:', userId);
   });
 
+  socket.on('robotPosicion', (data) => {
+    console.log('🤖 Posición del robot:', data);
+
+    // reenviar a todas las apps conectadas
+    io.emit('robotPosicion', data);
+  });
+  
   socket.on('disconnect', () => {
     // eliminar usuario desconectado
     for (let id in usuariosConectados) {
