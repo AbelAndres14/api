@@ -48,7 +48,8 @@ const createViaje = async (req, res) => {
           io.to(usuariosConectados[idStr]).emit("notificacion", {
             titulo: "Nuevo objeto en camino",
             mensaje: `Se ha creado un viaje para entregarte: ${objeto}`,
-            viaje: { id: results.insertId, ...viajeData }
+            viaje: { id: results.insertId, ...viajeData },
+            destinatarioId: idStr // 🔥 AGREGA ESTO
           });
           console.log(`🔔 Notificación enviada a usuario ID: ${idStr}`);
         } else {
